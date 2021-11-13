@@ -1,0 +1,11 @@
+class Program {
+	void main(void) {
+		int x;
+		int y;
+		if ((x!=1) || (x!=y) && (x<=y)) {
+			x=3;
+		} else {
+			x=5;
+		}
+	}
+}
