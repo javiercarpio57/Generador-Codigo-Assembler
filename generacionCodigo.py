@@ -351,9 +351,12 @@ class GeneracionCodigoPrinter(DecafListener):
 
         self.return_temp(self.node_code[ctx.getChild(2)]['addr'])
         self.return_temp((temp, True))
+        # self.return_temp((temp2, True))
+        topget = self.TopGet(variable['Id'], temp2)
         self.node_code[ctx] = {
             'code': code,
-            'addr': (temp2, True)
+            'addr': (topget, False),
+            'register': temp2
         }
         
 
@@ -553,7 +556,8 @@ class GeneracionCodigoPrinter(DecafListener):
             }
         elif left.array_id():
             id = left.array_id().ID().getText()
-            topget = self.TopGet(id, self.node_code[left]['addr'][0])
+            # topget = self.TopGet(id, self.node_code[left]['addr'][0])
+            topget = self.node_code[left]['addr'][0]
             addr = E['addr']
             
             code = self.node_code[left]['code'] + E['code'] + \
@@ -561,11 +565,16 @@ class GeneracionCodigoPrinter(DecafListener):
 
             self.return_temp(self.node_code[left]['addr'])
             self.return_temp(addr)
+            self.return_temp((self.node_code[left.array_id()]['register'], True))
                 
             self.node_code[ctx] = {
                 'code': code,
                 'addr': ('', False)
-            }   
+            }
+
+        if right.location():
+            if right.location().array_id():
+                self.return_temp((self.node_code[right.location().array_id()]['register'], True))
 
     def enterExpr(self, ctx: DecafParser.ExprContext):
         if ctx in self.node_code.keys():
