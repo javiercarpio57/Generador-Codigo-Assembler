@@ -162,9 +162,7 @@ class GeneracionCodigoPrinter(DecafListener):
                 parameters.append({'Tipo': typeParameter, 'Id': idParameter})
                 self.tabla_parameters.Add(typeParameter, idParameter)
 
-        
-        self.tabla_methods.Add(tipo, method, parameters, None)
-        
+        self.tabla_methods.Add(tipo, method, parameters, None, 0)
         self.NewScope()
 
         for parameter in parameters:
@@ -176,6 +174,8 @@ class GeneracionCodigoPrinter(DecafListener):
     def exitMethod_declr(self, ctx: DecafParser.Method_declrContext):
         method = ctx.method_name().getText()
         self.tabla_parameters.Clear()
+        size = self.current_scope.GetSize()
+        self.tabla_methods.SetSize(method, size)
         self.PopScope()
         print('Saliendo metodo', method)
 
@@ -565,6 +565,7 @@ class GeneracionCodigoPrinter(DecafListener):
 
             self.return_temp(self.node_code[left]['addr'])
             self.return_temp(addr)
+            print(self.node_code[left.array_id()])
             self.return_temp((self.node_code[left.array_id()]['register'], True))
                 
             self.node_code[ctx] = {
@@ -820,7 +821,8 @@ class GeneracionCodigoPrinter(DecafListener):
                 self.return_temp((temp, True))
                 total = {
                     'code': code,
-                    'addr': (temp2, True)
+                    'addr': (temp2, True),
+                    'register': temp2
                 }
                 self.node_code[location] = total
                 return tipo_retorno, total
@@ -873,9 +875,11 @@ class GeneracionCodigoPrinter(DecafListener):
             self.return_temp((temp2, True))
             total = {
                 'code': num['code'] + code,
-                'addr': (temp3, True)
+                'addr': (temp3, True),
+                'register': temp3
             }
             self.node_code[location] = total
+            self.node_code[location.array_id()] = total
 
             return result_type, total
 
@@ -949,9 +953,16 @@ class GeneracionCodigoPrinter(DecafListener):
                 self.return_temp(addr)
                 self.return_temp((temp, True))
                 self.return_temp((temp2, True))
+                topget = self.TopGet(symbol['Id'], temp3)
+                self.node_code[ctx.array_id()] = {
+                    'code': total['code'] + code,
+                    'addr': (topget, False),
+                    'register': temp3
+                }
                 self.node_code[ctx] = {
                     'code': total['code'] + code,
-                    'addr': (temp3, True)
+                    'addr': (topget, False),
+                    'register': temp3
                 }
 
                 print('------------ LOCATION SALIDA -------------------', result_type)
@@ -975,6 +986,7 @@ class GeneracionCodigoPrinter(DecafListener):
 
     def exitProgram(self, ctx: DecafParser.ProgramContext):
 
+        self.tabla_methods.ToTable()
         self.current_scope.ToTable()
         print('---------- FIN --------------')
 

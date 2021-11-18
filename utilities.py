@@ -123,12 +123,13 @@ class TablaMetodos():
         self._methods = []
         print(' -- INICIANDO NUEVO AMBITO --')
 
-    def Add(self, tipo, id, parameters, returnVariable):
+    def Add(self, tipo, id, parameters, returnVariable, size):
         self._methods.append({
             'Tipo': tipo,
             'Id': id,
             'Parameters': parameters,
-            'Return': returnVariable
+            'Return': returnVariable,
+            'Size': size
         })
 
     def LookUp(self, variable):
@@ -139,13 +140,18 @@ class TablaMetodos():
         return 0
 
     def ToTable(self):
-        self.pretty_table.field_names = ['Tipo', 'ID', 'Parameters', 'Return']
+        self.pretty_table.field_names = ['Tipo', 'ID', 'Parameters', 'Return', 'Size']
         for i in self._methods:
             self.pretty_table.add_row(list(i.values()))
 
         print(' ** METODOS **')
         print(self.pretty_table)
         self.pretty_table.clear_rows()
+
+    def SetSize(self, id, size):
+        for method in self._methods:
+            if method['Id'] == id:
+                method['Size'] = size
 
 class TablaTipos():
     def __init__(self):

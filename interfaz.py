@@ -32,11 +32,13 @@ class MainWindow(QMainWindow):
 		self.tab1 = QWidget()
 		self.tab2 = QWidget()
 		self.tab3 = QWidget()
+		self.tab4 = QWidget()
 
 		# # Add tabs
 		self.tabs.addTab(self.tab1, "Text Editor")
 		self.tabs.addTab(self.tab2, "Errores gramaticales")
 		self.tabs.addTab(self.tab3, "Generación de código intermedio")
+		self.tabs.addTab(self.tab4, "Código Assembler")
 
 		# creating a QPlainTextEdit object
 		self.editor = QPlainTextEdit()
@@ -54,6 +56,13 @@ class MainWindow(QMainWindow):
 		self.tab3.layout = QVBoxLayout()
 		self.tab3.layout.addWidget(self.codigoIntermedio)
 		self.tab3.setLayout(self.tab3.layout)
+
+		self.assembler = QPlainTextEdit()
+		self.assembler.setFont(fixedfont)
+		self.assembler.setPlainText("")
+		self.tab4.layout = QVBoxLayout()
+		self.tab4.layout.addWidget(self.assembler)
+		self.tab4.setLayout(self.tab4.layout)
 
 		self.editor.setFont(fixedfont)
 
@@ -306,10 +315,16 @@ class MainWindow(QMainWindow):
 					errores = '\n'.join(compilado.printer.errores.GetErrores())
 					self.showErrors.setText(errores)
 				else:
-					self.tabs.setCurrentIndex(2)
+					self.tabs.setCurrentIndex(3)
+
 					codigo = '\n'.join(compilado.printer2.codigogenerado)
 					self.showErrors.setText('No hay errores gramaticales')
 					self.codigoIntermedio.setPlainText(codigo)
+
+					codigo = '\n'.join(compilado.ass.code_assembler)
+					self.assembler.setPlainText(codigo)
+
+
 
 	# save to path method
 	def _save_to_path(self, path):
