@@ -11,7 +11,7 @@ class Assembler():
         self.init()
 
     def init(self):
-        for i in range(3):
+        for i in range(11):
             self.pool_registers.append(f'r{i}')
             self.register_descriptor[f'r{i}'] = []
 
@@ -35,7 +35,11 @@ class Assembler():
 
         # PARTE DE Ry
         if self.is_number(y):
-            Ry = self.getRegister(x, y, z, 'y', None, None)
+            result, register = self.checkVariableInRegister(y)
+            if result:
+                Ry = register
+            else:
+                Ry = self.getRegister(x, y, z, 'y', None, None)
         else:
             self.addAddressDescriptor(y, y)
             result, register = self.checkVariableInRegister(y)
@@ -51,7 +55,11 @@ class Assembler():
         # PARTE DE Rz
         if z:
             if self.is_number(z):
-                Rz = f'#{int(z)}'
+                result, register = self.checkVariableInRegister(z)
+                if result:
+                    Rz = register
+                else:
+                    Rz = self.getRegister(x, y, z, 'z', Ry, None)
             else:
                 self.addAddressDescriptor(z, z)
                 result, register = self.checkVariableInRegister(z)
@@ -61,8 +69,8 @@ class Assembler():
                     register = self.getRegister(x, y, z, 'z', Ry, None)
                     
                     Rz = register
-                self.register_descriptor[Rz] = [z]
-                self.addAddressDescriptor(z, Rz)
+            self.register_descriptor[Rz] = [z]
+            self.addAddressDescriptor(z, Rz)
 
         # PARTE DE Rx
             result, register = self.checkVariableInRegister(x)
@@ -74,16 +82,22 @@ class Assembler():
                 self.addAddressDescriptor(x, Rx)
 
         else:
-            Rx = Ry
-            self.register_descriptor[Ry].append(x)
-            self.address_descriptor[x] = [Ry]
+            result, register = self.checkVariableInRegister(x)
+            if result:
+                Rx = register
+            else:
+                Rx = Ry
+                self.register_descriptor[Ry].append(x)
+                self.address_descriptor[x] = [Ry]
 
         print(f'Rx: {Rx}, Ry: {Ry}, Rz: {Rz}')
+        self.ToTable()
         return Rx, Ry, Rz
 
     def checkVariableInRegister(self, var):
         for key, value in self.register_descriptor.items():
             if var in value:
+                print('VERIFICANDO...', var, value, key)
                 return True, key
         return False, ''
 
@@ -99,6 +113,13 @@ class Assembler():
 
             self.removeRegisterFromAddressDescriptor(y, Ry)
             return Ry
+
+        # CASO 0 by Javi
+        for key, value in self.address_descriptor.items():
+            if self.is_number(key) and len(value) > 0:
+                v = value[0]
+                self.address_descriptor[key] = []
+                return v
 
         # CASO 1
         for key, value in self.address_descriptor.items():
@@ -129,7 +150,18 @@ class Assembler():
         # CASO 3
         # Falta implementar el DERRAME ?
 
+        print("CREO QUE SI HAY QUE IMPLEMENTAR DERRAME")
         return None
+
+    def findTemp(self, temp):
+        for register, value in self.register_descriptor.items():
+            if temp in value:
+                return register
+        return None
+      
+    # def saveRegisterInMemory(self, new, r):
+
+    #     for 
 
     def addAddressDescriptor(self, value, register):
         if value in self.address_descriptor.keys():
