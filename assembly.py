@@ -34,7 +34,8 @@ class Assembler():
     def getReg(self, x, y, z = None):
         Rx, Ry, Rz = [None, None, None]
 
-        self.addAddressDescriptor(x, x)
+        if x:
+            self.addAddressDescriptor(x, x)
         print('GET REG:', x, y, z)
 
         # PARTE DE Ry

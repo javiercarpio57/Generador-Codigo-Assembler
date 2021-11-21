@@ -29,7 +29,6 @@ class Program {
 	void Ordenar(void)
 	{
 		int i;
-		int j;
 		int temp;
 		i = 0;
 		while(i<10)
@@ -53,6 +52,7 @@ class Program {
 			A[i]=InputInt();
 			i = i+1;		
 		}
+		A[0] = 1;
 		A[1] = 5;
 		A[6] = 10;
 		Ordenar();

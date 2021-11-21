@@ -53,7 +53,7 @@ class Assembler():
                 elif estructura[0] == 'EXIT':
                     if isLeaf:
                         prologo = []
-                        epilogo = ['bx\tlr']
+                        epilogo = [f'add\tsp, sp, #{self.current_size}'] + ['bx\tlr']
                     else:
                         prologo = ['push\t{r11, lr}'] + ['mov\tr11, sp']
                         epilogo = ['mov\tsp, r11'] + ['pop\t{r11, lr}'] + ['bx\tlr']
@@ -86,11 +86,25 @@ class Assembler():
 
                                 assember.address_descriptor[o] = [o]
                             else:
-                                # TODO: Programar lo global
-                                pass
+                                pat = r'\[(.*)\]'
+                                _, address_reg, _ = assember.getReg(None, '.global_stack')
+                                code1 += [f'ldr\t{address_reg}, .global_stack']
+                                num = re.search(global_pattern, o).group(1)
+                                
+                                if self.is_number(num):
+                                    code1 += [f'str\t{registro}, [{address_reg}, #{num}]']
+                                else:
+                                    temp = assember.findTemp(num)
+                                    code1 += [f'str\t{registro}, [{address_reg}, {temp}]']
                         elif o[0] in 't':
-                            assember.address_descriptor[o] = [o]
+                            new_reg = assember.getRegister(None, o, None, 'y', None, None)
+                            old_reg = assember.findTemp(o)
+                            code1 += [f'mov\t{new_reg}, {old_reg}']
+                            assember.address_descriptor[o] = [o, new_reg]
+                            assember.register_descriptor[new_reg] = [o]
 
+                    assember.register_descriptor[registro] = [value]
+                    assember.addAddressDescriptor(value, registro)
 
                     if re.match(local_pattern, value):
                         num = re.search(local_pattern, value).group(1)
@@ -102,10 +116,22 @@ class Assembler():
                             assember.removeVariable(num, temp)
 
                     elif re.match(global_pattern, value):
-                        pass
+                        _, address_reg, _ = assember.getReg(None, '.global_stack')
+                        code1 += [f'ldr\t{address_reg}, .global_stack']
+                        num = re.search(global_pattern, value).group(1)
+                        
+                        if self.is_number(num):
+                            code1 += [f'ldr\t{registro}, [{address_reg}, #{num}]']
+                        else:
+                            temp = assember.findTemp(num)
+                            code1 += [f'ldr\t{registro}, [{address_reg}, {temp}]']
+                            assember.removeVariable(num, temp)
+
                     elif value[0] == 't':
                         temp = assember.findTemp(value)
                         code1 += [f'mov\t{registro}, {temp}']
+                        assember.removeVariable(value, temp)
+
                     elif self.is_number(value):
                         code1 += [f'mov\t{registro}, #{value}']
 
@@ -166,8 +192,19 @@ class Assembler():
                             temp = assember.findTemp(num)
                             code1 += [f'ldr\t{ry}, [sp, {temp}]']
                             assember.removeVariable(num, temp)
+
                     elif re.match(global_pattern, op1):
-                        pass
+                        _, address_reg, _ = assember.getReg(None, '.global_stack')
+                        code1 += [f'ldr\t{address_reg}, .global_stack']
+                        num = re.search(global_pattern, op1).group(1)
+                        
+                        if self.is_number(num):
+                            code1 += [f'ldr\t{ry}, [{address_reg}, #{num}]']
+                        else:
+                            temp = assember.findTemp(num)
+                            code1 += [f'ldr\t{ry}, [{address_reg}, {temp}]']
+                            assember.removeVariable(num, temp)
+
                     elif op1[0] == 't':
                         temp = assember.findTemp(op1)
                         code1 += [f'mov\t{ry}, {temp}']
@@ -184,7 +221,16 @@ class Assembler():
                             code1 += [f'ldr\t{rz}, [sp, {temp}]']
                             assember.removeVariable(num, temp)
                     elif re.match(global_pattern, op2):
-                        pass
+                        _, address_reg, _ = assember.getReg(None, '.global_stack')
+                        code1 += [f'ldr\t{address_reg}, .global_stack']
+                        num = re.search(global_pattern, op2).group(1)
+                        
+                        if self.is_number(num):
+                            code1 += [f'ldr\t{rz}, [{address_reg}, #{num}]']
+                        else:
+                            temp = assember.findTemp(num)
+                            code1 += [f'ldr\t{rz}, [{address_reg}, {temp}]']
+                            assember.removeVariable(num, temp)
                     elif op2[0] == 't':
                         temp = assember.findTemp(op2)
                         code1 += [f'mov\t{rz}, {temp}']

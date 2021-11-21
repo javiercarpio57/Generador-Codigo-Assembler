@@ -1,4 +1,5 @@
 class Program { 
+	int A[10];
 	int factorial(int n) {
 		if (n==0) {
 			return 1;
@@ -9,7 +10,7 @@ class Program {
 
 	void main(void) {
 		int a;
-		a = factorial(5);
+		a = factorial(A[1]);
 	}
 
 }
