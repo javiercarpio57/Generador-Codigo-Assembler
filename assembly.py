@@ -24,12 +24,16 @@ class Assembler():
         except ValueError:
             return False
 
+    def removeVariable(self, var, register):
+        if var and register:
+            print(f'QUITANDO {var} DE {register}')
+            if var in self.register_descriptor[register] or register in self.address_descriptor[var]:
+                self.register_descriptor[register].remove(var)
+                self.address_descriptor[var].remove(register)
+
     def getReg(self, x, y, z = None):
         Rx, Ry, Rz = [None, None, None]
-        # print(I)
-        # I_ = I.split()
 
-        # x, y, z = [I_[0], I_[2], I_[4]]
         self.addAddressDescriptor(x, x)
         print('GET REG:', x, y, z)
 
@@ -73,25 +77,31 @@ class Assembler():
             self.addAddressDescriptor(z, Rz)
 
         # PARTE DE Rx
-            result, register = self.checkVariableInRegister(x)
-            if result:
-                Rx = register
-            else:
-                Rx = self.getRegister(x, y, z, 'x', Ry, Rz)
-                self.register_descriptor[Rx] = [x]
-                self.addAddressDescriptor(x, Rx)
+            if x:
+                result, register = self.checkVariableInRegister(x)
+                if result:
+                    Rx = register
+                else:
+                    Rx = self.getRegister(x, y, z, 'x', Ry, Rz)
+                    self.register_descriptor[Rx] = [x]
+                    self.addAddressDescriptor(x, Rx)
 
         else:
-            result, register = self.checkVariableInRegister(x)
-            if result:
-                Rx = register
-            else:
-                Rx = Ry
-                self.register_descriptor[Ry].append(x)
-                self.address_descriptor[x] = [Ry]
+            if x:
+                result, register = self.checkVariableInRegister(x)
+                if result:
+                    Rx = register
+                else:
+                    Rx = Ry
+                    self.register_descriptor[Ry].append(x)
+                    self.address_descriptor[x] = [Ry]
 
         print(f'Rx: {Rx}, Ry: {Ry}, Rz: {Rz}')
         self.ToTable()
+
+        # self.removeVariable(y, Ry)
+        # self.removeVariable(z, Rz)
+
         return Rx, Ry, Rz
 
     def checkVariableInRegister(self, var):

@@ -1,12 +1,12 @@
 class Program {
+	int A[10];
+
 	void main(void) {
-		int a;
-		int b;
-		int c;
-		a = 5;
-		b = 10;
-		c = b + a + a + b;
-		a = c + 2;
+		int b[5];
+		A[0] = 10;
+		A[1] = A[0];
+//		b[0] = b[1];
+
 	}
 
 }

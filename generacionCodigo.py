@@ -560,8 +560,12 @@ class GeneracionCodigoPrinter(DecafListener):
             topget = self.node_code[left]['addr'][0]
             addr = E['addr']
             
-            code = self.node_code[left]['code'] + E['code'] + \
-                [f'{topget} = {addr[0]}']
+            if right.method_call():
+                code = E['code'] + self.node_code[left]['code'] + \
+                    [f'{topget} = {addr[0]}']
+            else:
+                code = self.node_code[left]['code'] + E['code'] + \
+                    [f'{topget} = {addr[0]}']
 
             self.return_temp(self.node_code[left]['addr'])
             self.return_temp(addr)

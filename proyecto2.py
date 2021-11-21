@@ -49,7 +49,7 @@ class Compilar():
                 walker.walk(self.printer2, tree)
 
                 print('podemos generar assembler')
-                self.ass = ga.Assembler(self.printer2.codigogenerado, self.printer2.tabla_methods._methods)
+                self.ass = ga.Assembler(self.printer2.codigogenerado, self.printer2.tabla_methods._methods, self.printer2.current_scope.GetSize())
 
     def HasLexicalError(self):
         return self.myError.getHasError()
