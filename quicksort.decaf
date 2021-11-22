@@ -1,5 +1,6 @@
 class Program {
 	int A[10];
+	int B[10];
 
 	void OutputInt(int n)
 	{
@@ -55,7 +56,7 @@ class Program {
 		A[0] = 1;
 		A[1] = 5;
 		A[6] = 10;
-		Ordenar();
+		//Ordenar();
 		i = 0;
 		while(i<10)
 		{

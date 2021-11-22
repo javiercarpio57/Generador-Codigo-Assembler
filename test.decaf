@@ -7,7 +7,7 @@ void main(void) {
     int y;     // L[4]
     int z;     // L[8]
 
-    x = y + z;
+    x = y + 16;
 }
 
 }

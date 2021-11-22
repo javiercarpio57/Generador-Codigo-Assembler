@@ -98,7 +98,7 @@ class Assembler():
                     self.address_descriptor[x] = [Ry]
 
         print(f'Rx: {Rx}, Ry: {Ry}, Rz: {Rz}')
-        self.ToTable()
+        # self.ToTable()
 
         # self.removeVariable(y, Ry)
         # self.removeVariable(z, Rz)
