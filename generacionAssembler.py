@@ -14,6 +14,14 @@ class Assembler():
             '*': 'mul',
             '/': 'div'
         }
+        self.conditions = {
+            '==': 'beq',
+            '<': 'blt',
+            '>': 'bgt',
+            '!=': 'bne',
+            '<=': 'ble',
+            '>=': 'bge'
+        }
         self.current_assembler = None
         
         local_pattern = r'L\[(.*)\]'
@@ -62,6 +70,9 @@ class Assembler():
                     prologo += [f'sub\tsp, sp, #{self.current_size}']
                     # epilogo += epilogo
                 
+                    if estructura[-1] == 'InputInt':
+                        codigo_medio = ['\tldr\tr0, =0xFF200050'] + ['\tldr\tr0, [r0]']
+
                     prologo = ['\t' + i for i in prologo]
                     epilogo = ['\t' + i for i in epilogo]
                     self.code_assembler += tag + prologo + codigo_medio + epilogo + ['']
@@ -75,35 +86,43 @@ class Assembler():
                     old = self.current_assembler.register_descriptor[registro]
 
                     for o in old:
-                        if o[0] in 'LG':
-                            if o[0] == 'L':
+                        if o != value:
+                            if o[0] in 'LG':
                                 print('PARAM', o)
-                                num = re.search(local_pattern, o).group(1)
+                                if o[0] == 'L':
+                                    num = re.search(local_pattern, o).group(1)
 
-                                if self.is_number(num):
-                                    code1 += [f'str\t{registro}, [sp, #{num}]']
-                                else:
-                                    temp = self.current_assembler.findTemp(num)
-                                    code1 += [f'str\t{registro}, [sp, {temp}]']
+                                    if self.is_number(num):
+                                        code1 += [f'str\t{registro}, [sp, #{num}]']
+                                    else:
+                                        temp = self.current_assembler.findTemp(num)
+                                        code1 += [f'str\t{registro}, [sp, {temp}]']
 
-                                self.current_assembler.address_descriptor[o] = [o]
-                            else:
-                                pat = r'\[(.*)\]'
-                                _, address_reg, _ = self.current_assembler.getReg(None, '.global_stack')
-                                code1 += [f'ldr\t{address_reg}, .global_stack']
-                                num = re.search(global_pattern, o).group(1)
-                                
-                                if self.is_number(num):
-                                    code1 += [f'str\t{registro}, [{address_reg}, #{num}]']
+                                    self.current_assembler.address_descriptor[o] = [o]
                                 else:
-                                    temp = self.current_assembler.findTemp(num)
-                                    code1 += [f'str\t{registro}, [{address_reg}, {temp}]']
-                        elif o[0] in 't':
-                            new_reg = self.current_assembler.getRegister(None, o, None, 'y', None, None)
-                            old_reg = self.current_assembler.findTemp(o)
-                            code1 += [f'mov\t{new_reg}, {old_reg}']
-                            self.current_assembler.address_descriptor[o] = [o, new_reg]
-                            self.current_assembler.register_descriptor[new_reg] = [o]
+                                    pat = r'\[(.*)\]'
+                                    _, address_reg, _ = self.current_assembler.getReg(None, '.global_stack')
+                                    code1 += [f'ldr\t{address_reg}, .global_stack']
+                                    num = re.search(global_pattern, o).group(1)
+                                    
+                                    if self.is_number(num):
+                                        code1 += [f'str\t{registro}, [{address_reg}, #{num}]']
+                                    else:
+                                        temp = self.current_assembler.findTemp(num)
+                                        code1 += [f'str\t{registro}, [{address_reg}, {temp}]']
+                            elif o[0] in 't':
+                                new_reg = self.current_assembler.getRegister(None, o, None, 'y', None, None)
+                                old_reg = self.current_assembler.findTemp(o)
+                                code1 += [f'mov\t{new_reg}, {old_reg}']
+                                self.current_assembler.address_descriptor[o] = [o, new_reg]
+                                self.current_assembler.register_descriptor[new_reg] = [o]
+                            # elif o == 'R':
+                            #     print('TENGO QUE MOVER EL PARAMETRO --- R ---')
+                            #     new_reg = self.current_assembler.getRegister(None, o, None, 'y', None, None)
+                            #     old_reg = self.current_assembler.findTemp(o)
+                            #     code1 += [f'mov\t{new_reg}, {old_reg}']
+                            #     self.current_assembler.address_descriptor[o] = [o, new_reg]
+                            #     self.current_assembler.register_descriptor[new_reg] = [o]
 
                     self.current_assembler.register_descriptor[registro] = [value]
                     self.current_assembler.addAddressDescriptor(value, registro)
@@ -136,12 +155,17 @@ class Assembler():
 
                     elif self.is_number(value):
                         code1 += [f'mov\t{registro}, #{value}']
+                    # else:
+                    #     temp = self.current_assembler.findTemp(value)
+                    #     code1 += [f'mov\t{registro}, {temp}']
+                        # self.current_assembler.removeVariable(value, temp)
 
                     # self.current_assembler.register_descriptor[registro] = [value]
                     # self.current_assembler.addAddressDescriptor(value, registro)
                     codigo_medio += ['\t' + i for i in code1]
 
                 elif estructura[0] == 'CALL':
+                    params = 0
                     isLeaf = False
                     code1 = [f'bl\t{estructura[1][:-1]}']
                     metodo = self.look_up(estructura[1][:-1])
@@ -376,20 +400,8 @@ class Assembler():
         self.code_assembler += [''] + ['.global_stack:\t.long\tglobal_var'] + [''] + [f'global_var:\t.zero\t{self.global_size}']
 
     def getConditional(self, op1, operador, op2):
-        code = []
-        branch = None
-
-        if operador == '==':
-            code = [f'cmp\t{op1}, {op2}']
-            branch = 'beq'
-
-        elif operador == '<':
-            code = [f'cmp\t{op1},{op2}']
-            branch = 'blt'
-
-        elif operador == '>':
-            code = [f'cmp\t{op1},{op2}']
-            branch = 'bgt'
+        code = [f'cmp\t{op1}, {op2}']
+        branch = self.conditions[operador]
 
         return code, branch
 
