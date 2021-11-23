@@ -1,0 +1,20 @@
+class Program {
+	void OutputInt(int a){}
+	int InputInt(){return 0;}
+
+	int factorial(int n) {
+		if (n==0) {
+			return 1;
+		} else {
+			return n*factorial(n-1);
+		}
+	}
+
+	void main(void) {
+		int a;
+		a = InputInt();
+		a = factorial(a);
+		OutputInt(a);
+	}
+
+}

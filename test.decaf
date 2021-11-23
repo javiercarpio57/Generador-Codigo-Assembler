@@ -1,13 +1,18 @@
-class Program {
-	//int x[5];
+class Program
+{
+	int Add(int x, int y){
+		int a;
+		a = x+y;
+		return a;
+	}
 
-void main(void) {
-    // x[3] = x[0];
-    int x;     // L[0]
-    int y;     // L[4]
-    int z;     // L[8]
-
-    x = y + 16;
-}
-
+	void main()
+	{
+		int a;
+		int b;
+		int c;
+		a = 1;
+		b = 2;
+		c = Add(a,b);
+	}
 }

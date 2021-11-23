@@ -455,13 +455,15 @@ class GeneracionCodigoPrinter(DecafListener):
 
         parameter_code = []
         total_code = []
+        # for i in range(len(parameters) - 1, 0, -1):
         for i in range(len(parameters)):
             param = self.node_code[parameters[i]]['addr'][0]
             
             self.return_temp(self.node_code[parameters[i]]['addr'])
 
-            total_code += self.node_code[parameters[i]]['code']
+            total_code = self.node_code[parameters[i]]['code'] + total_code
             parameter_code += [f'PARAM {param}']
+            print(total_code, parameter_code)
 
             self.node_type[ctx] = method_info['Tipo']
 
